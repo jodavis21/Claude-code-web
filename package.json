@@ -1,0 +1,14 @@
+{
+  "name": "journaling-app",
+  "version": "1.0.0",
+  "description": "A simple journaling app with SQLite backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.4.3"
+  }
+}

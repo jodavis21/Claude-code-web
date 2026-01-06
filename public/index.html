@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Journal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>My Journal</h1>
+    </header>
+
+    <main>
+      <!-- New Entry Form -->
+      <section class="new-entry">
+        <h2>New Entry</h2>
+        <form id="entry-form">
+          <input type="hidden" id="entry-id">
+          <input type="text" id="entry-title" placeholder="Title (optional)">
+          <textarea id="entry-content" placeholder="Write your thoughts..." required></textarea>
+          <div class="form-actions">
+            <button type="submit" id="submit-btn">Save Entry</button>
+            <button type="button" id="cancel-btn" class="secondary" style="display: none;">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Search -->
+      <section class="search-section">
+        <input type="text" id="search-input" placeholder="Search entries...">
+      </section>
+
+      <!-- Entries List -->
+      <section class="entries-section">
+        <h2>Past Entries</h2>
+        <div id="entries-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Entry Modal -->
+  <div id="entry-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modal-title"></h2>
+      <p id="modal-date"></p>
+      <div id="modal-content"></div>
+      <div class="modal-actions">
+        <button id="edit-btn">Edit</button>
+        <button id="delete-btn" class="danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
