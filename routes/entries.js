@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { entries } = require('../db/database');
+const { entries } = require('../db/firebase-database');
 
 // GET /api/entries - List all entries (with optional search)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const search = req.query.search || '';
-    const allEntries = entries.getAll(search);
+    const allEntries = await entries.getAll(search);
     res.json(allEntries);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -14,9 +14,9 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/entries/:id - Get single entry
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const entry = entries.getById(req.params.id);
+    const entry = await entries.getById(req.params.id);
     if (!entry) {
       return res.status(404).json({ error: 'Entry not found' });
     }
@@ -27,13 +27,13 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/entries - Create new entry
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { title, content } = req.body;
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
-    const entry = entries.create(title || '', content);
+    const entry = await entries.create(title || '', content);
     res.status(201).json(entry);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -41,9 +41,9 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/entries/:id - Update entry
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const existing = entries.getById(req.params.id);
+    const existing = await entries.getById(req.params.id);
     if (!existing) {
       return res.status(404).json({ error: 'Entry not found' });
     }
@@ -51,7 +51,7 @@ router.put('/:id', (req, res) => {
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
-    const entry = entries.update(req.params.id, title || '', content);
+    const entry = await entries.update(req.params.id, title || '', content);
     res.json(entry);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -59,9 +59,9 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/entries/:id - Delete entry
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const entry = entries.delete(req.params.id);
+    const entry = await entries.delete(req.params.id);
     if (!entry) {
       return res.status(404).json({ error: 'Entry not found' });
     }
