@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } = require('firebase/firestore');
+const { getFirestore, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, Timestamp } = require('firebase/firestore');
 
 // Initialize Firebase with client SDK
 const firebaseConfig = {
@@ -18,11 +18,15 @@ const db = getFirestore(app);
 
 // Database operations
 const entries = {
-  // Get all entries, optionally filtered by search term
-  getAll: async (search = '') => {
+  // Get all entries for a user, optionally filtered by search term
+  getAll: async (userId, search = '') => {
     try {
       const entriesCol = collection(db, 'entries');
-      const q = query(entriesCol, orderBy('created_at', 'desc'));
+      const q = query(
+        entriesCol,
+        where('userId', '==', userId),
+        orderBy('created_at', 'desc')
+      );
       const snapshot = await getDocs(q);
 
       let allEntries = snapshot.docs.map(docSnap => ({
@@ -49,8 +53,8 @@ const entries = {
     }
   },
 
-  // Get a single entry by ID
-  getById: async (id) => {
+  // Get a single entry by ID (with optional userId validation)
+  getById: async (id, userId = null) => {
     try {
       const docRef = doc(db, 'entries', id);
       const docSnap = await getDoc(docRef);
@@ -59,24 +63,32 @@ const entries = {
         return null;
       }
 
-      return {
+      const entry = {
         id: docSnap.id,
         ...docSnap.data(),
         created_at: docSnap.data().created_at?.toDate?.()?.toISOString() || docSnap.data().created_at,
         updated_at: docSnap.data().updated_at?.toDate?.()?.toISOString() || docSnap.data().updated_at
       };
+
+      // Validate ownership if userId provided
+      if (userId && entry.userId !== userId) {
+        return null;
+      }
+
+      return entry;
     } catch (error) {
       console.error('Error getting entry:', error);
       throw error;
     }
   },
 
-  // Create a new entry
-  create: async (title, content) => {
+  // Create a new entry for a user
+  create: async (userId, title, content) => {
     try {
       const now = Timestamp.now();
       const entriesCol = collection(db, 'entries');
       const docRef = await addDoc(entriesCol, {
+        userId,
         title: title || '',
         content,
         created_at: now,
@@ -89,9 +101,15 @@ const entries = {
     }
   },
 
-  // Update an existing entry
-  update: async (id, title, content) => {
+  // Update an existing entry (with ownership validation)
+  update: async (id, userId, title, content) => {
     try {
+      // Verify ownership before updating
+      const existing = await entries.getById(id, userId);
+      if (!existing) {
+        throw new Error('Entry not found or unauthorized');
+      }
+
       const now = Timestamp.now();
       const docRef = doc(db, 'entries', id);
       await updateDoc(docRef, {
@@ -106,10 +124,11 @@ const entries = {
     }
   },
 
-  // Delete an entry
-  delete: async (id) => {
+  // Delete an entry (with ownership validation)
+  delete: async (id, userId) => {
     try {
-      const entry = await entries.getById(id);
+      // Verify ownership before deleting
+      const entry = await entries.getById(id, userId);
       if (entry) {
         const docRef = doc(db, 'entries', id);
         await deleteDoc(docRef);
